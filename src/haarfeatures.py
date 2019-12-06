@@ -26,6 +26,7 @@ class HaarLikeFeature(object):
         self.weight = weight
 
     def calc_score(self, integ_img):
+        #depending on what feature type, calculate the pixel differential score
         score, white, grey = 0, 0, 0
         if self.type == feat_type.TWO_VERTICAL:
             white += get_sum(integ_img, self.top_left, 
@@ -68,7 +69,7 @@ class HaarLikeFeature(object):
         score = white - grey
         return score
 
-    def get_vote(self, int_img):
+    def get_vote(self, integ_img):
         # get prediction of feature given integral image
-        score = self.calc_score(int_img)
+        score = self.calc_score(integ_img)
         return self.weight * (1 if score < self.parity * self.threshold else 0)
