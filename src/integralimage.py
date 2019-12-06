@@ -31,7 +31,6 @@ class IntegralImage(object):
             else:
                 return self.integ_img_sq[x][y]
         else:
-            # principal equation
             cummulative = self.calc(x-1, y, sq) + self.calc(x, y-1, sq) - self.calc(x-1, y-1, sq)
             if not sq:
                 cummulative += self.img[x-1][y-1]
