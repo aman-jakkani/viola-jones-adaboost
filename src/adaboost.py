@@ -4,7 +4,7 @@ import os
 from src.integralimage import IntegralImage as II
 from src.haarfeatures import HaarLikeFeature as haar
 from src.haarfeatures import feat_type
-#from src.utils import *
+from src.utils import *
 
 def _create_features(img_width, img_height, min_feat_width, max_feat_width, min_feat_height, max_feat_height):
     # function to create all possible features, returned as list
@@ -40,8 +40,8 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
     # adaboost learning algorithm with variable number of rounds/classifiers
     #return list of features, one feature per round/classifier
 
-    num_pos = len(pos_int_img)
-    num_neg = len(neg_int_img)
+    num_pos = num_test_non(pos_int_img)
+    num_neg = num_test_non(neg_int_img)
     num_imgs = num_pos + num_neg
     img_height, img_width = pos_int_img[0].shape
 
@@ -61,9 +61,9 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
     print("\ncreating haar-like features ...")
     features = _create_features(img_width, img_height, min_feat_width, max_feature_width, min_feat_height, max_feature_height)
 
-    print('... done. %d features were created!' % len(features))
+    print('... done. %d features were created!' % num_test_non(features))
 
-    num_features = len(features)
+    num_features = num_test_non(features)
     feature_index = list(range(num_features)) # save manipulation of data
 
     # preset number of weak learners (classifiers) [under control]
@@ -95,13 +95,13 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
 
     for _ in range(num_rounds):
         
-        class_errors = np.zeros(len(feature_index)) # epsilon_j
+        class_errors = np.zeros(num_test_non(feature_index)) # epsilon_j
 
         # normalize weights (w_t)
         weights *= 1. / np.sum(weights)
 
         # select the best classifier based on the weighted error
-        for f in range(len(feature_index)):
+        for f in range(num_test_non(feature_index)):
             f_idx = feature_index[f]
             err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, f_idx] else 0, range(num_imgs)))
             class_errors[f] = err
