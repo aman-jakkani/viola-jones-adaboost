@@ -43,7 +43,7 @@ class IntegralImage(object):
         # Get the integral image with additional rows/cols of 0
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                self.int_img[i][j] = self.calc(i, j)
+                self.integ_img[i][j] = self.calc(i, j)
         # Get the squared integral image with additional rows/cols of 0
         self.memo = np.zeros(self.shape)
         for i in range(self.shape[0]):
@@ -52,7 +52,7 @@ class IntegralImage(object):
 
     def set_variance(self):
         N = (self.shape[0] - 1) * (self.shape[1] - 1) # number of pixels
-        m = self.int_img[-1][-1] / N # mean
+        m = self.integ_img[-1][-1] / N # mean
         sum_sq = self.integ_img_sq[-1][-1] # sum of x^2
         self.variance = (sum_sq / N) - math.pow(m, 2)
 

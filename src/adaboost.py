@@ -1,6 +1,6 @@
 import numpy as np
 import os
-
+from multiprocessing import cpu_count, Pool
 from src.integralimage import IntegralImage as II
 from src.haarfeatures import HaarLikeFeature as haar
 from src.haarfeatures import feat_type
@@ -40,8 +40,8 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
     # adaboost learning algorithm with variable number of rounds/classifiers
     #return list of features, one feature per round/classifier
 
-    num_pos = num_test_non(pos_int_img)
-    num_neg = num_test_non(neg_int_img)
+    num_pos = len(pos_int_img)
+    num_neg = len(neg_int_img)
     num_imgs = num_pos + num_neg
     img_height, img_width = pos_int_img[0].shape
 
@@ -61,9 +61,9 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
     print("\ncreating haar-like features ...")
     features = _create_features(img_width, img_height, min_feat_width, max_feature_width, min_feat_height, max_feature_height)
 
-    print('... done. %d features were created!' % num_test_non(features))
+    print('... done. %d features were created!' % len(features))
 
-    num_features = num_test_non(features)
+    num_features = len(features)
     feature_index = list(range(num_features)) # save manipulation of data
 
     # preset number of weak learners (classifiers) [under control]
@@ -78,11 +78,11 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
         # each row is an image of all features
         votes = np.zeros((num_imgs, num_features))
 
-        # pool object to parallelize the execution of a function across multiple input values
+        # parallelize the execution of a function across multiple input values
         NUM_PROCESS = cpu_count() * 3 # 8 on T580
         pool = Pool(processes=NUM_PROCESS)
 
-        # get all votes for each image and each feature (quite time-consuming)
+        # get all votes for each image and each feature (quite time-consuming so we use pool, even then)
         for i in range(num_imgs):
             votes[i, :] = np.array(list(pool.map(partial(_get_feature_vote, image=images[i]), features)))
 
@@ -95,13 +95,13 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
 
     for _ in range(num_rounds):
         
-        class_errors = np.zeros(num_test_non(feature_index)) # epsilon_j
+        class_errors = np.zeros(len(feature_index)) 
 
         # normalize weights (w_t)
         weights *= 1. / np.sum(weights)
 
         # select the best classifier based on the weighted error
-        for f in range(num_test_non(feature_index)):
+        for f in range(len(feature_index)):
             f_idx = feature_index[f]
             err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, f_idx] else 0, range(num_imgs)))
             class_errors[f] = err
@@ -111,10 +111,10 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
         best_error = class_errors[min_error_idx]
         best_feature_idx = feature_index[min_error_idx]
 
-        # set feature weight (alpha) and add to classifier list
+        # set alpha and add to classifier list
         best_feature = features[best_feature_idx]
-        feature_weight = .5 * np.log((1 - best_error) / best_error) # alpha
-        best_feature.weight = feature_weight
+        alpha = .5 * np.log((1 - best_error) / best_error) # alpha
+        best_feature.weight = alpha
         classifiers.append(best_feature)
 
         def new_weights(best_error):

@@ -2,6 +2,7 @@ import numpy as np
 from src.haarfeatures import feat_type
 from functools import partial
 import os
+from PIL import Image
 
 def ensemble_vote(int_img, classifiers):
     """
