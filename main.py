@@ -53,9 +53,9 @@ if __name__ == "__main__":
     print("\nintegral images obtained")
     num_classifiers = 2
     # For performance reasons restricting feature size
-    min_feature_height = 8
+    min_feature_height = 6
     max_feature_height = 8
-    min_feature_width = 8
+    min_feature_width = 6
     max_feature_width = 8
     # classifiers are haar like features
     classifiers = AB.learn(faces_train_int_imgs, non_train_int_imgs, num_classifiers, min_feature_width, max_feature_width, min_feature_height, max_feature_height)
@@ -63,10 +63,10 @@ if __name__ == "__main__":
     print('Testing selected classifiers..')
     correct_faces = 0
     correct_non_faces = 0
-    correct_faces = sum(utils.ensemble_vote_all(faces_test_int_imgs, classifiers))
-    correct_non_faces = num_test_non - sum(utils.ensemble_vote_all(non_test_int_imgs, classifiers))
+    correct_faces = sum(UT.ensemble_vote_all(faces_test_int_imgs, classifiers))
+    correct_non_faces = num_test_non - sum(UT.ensemble_vote_all(non_test_int_imgs, classifiers))
 
-    print('..done.\n\nResult:\n      Faces: ' + str(correct_faces) + '/' + str(num_test_non)
-          + '  (' + str((float(correct_faces) / num_test_non) * 100) + '%)\n  non-Faces: '
+    print('..done.\n\nResult:\n      Faces: ' + str(correct_faces) + '/' + str(num_test_face)
+          + '  (' + str((float(correct_faces) / num_test_face) * 100) + '%)\n  non-Faces: '
           + str(correct_non_faces) + '/' + str(num_test_non) + '  ('
           + str((float(correct_non_faces) / num_test_non) * 100) + '%)')

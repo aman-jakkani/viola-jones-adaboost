@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from multiprocessing import cpu_count, Pool
+from functools import partial
 from src.integralimage import IntegralImage as II
 from src.haarfeatures import HaarLikeFeature as haar
 from src.haarfeatures import feat_type
@@ -60,18 +61,16 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
 
     print("\ncreating haar-like features ...")
     features = _create_features(img_width, img_height, min_feat_width, max_feature_width, min_feat_height, max_feature_height)
-
-    print('... done. %d features were created!' % len(features))
-
     num_features = len(features)
+    print('... done. %d features were created!' % num_features)
+
     feature_index = list(range(num_features)) # save manipulation of data
 
-    # preset number of weak learners (classifiers) [under control]
+    # preset number of weak learners (classifiers)
     num_rounds = num_features if num_rounds == -1 else num_rounds
 
     print("\ncalculating scores for images ...")
 
-    
     if os.path.exists("votes.txt"):
         votes = load_votes()
     else:
@@ -84,8 +83,7 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
 
         # get all votes for each image and each feature (quite time-consuming so we use pool, even then)
         for i in range(num_imgs):
-            votes[i, :] = np.array(list(pool.map(partial(_get_feature_vote, image=images[i]), features)))
-
+            votes[i, :] = np.array(list(pool.map(partial(_get_feature_vote, img=images[i]), features)))
         save_votes(votes)
 
     # select classifiers
@@ -105,7 +103,7 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
             f_idx = feature_index[f]
             err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, f_idx] else 0, range(num_imgs)))
             class_errors[f] = err
-
+        #debug : print(class_errors)
         # get the best feature (with the smallest error)
         min_error_idx = np.argmin(class_errors) 
         best_error = class_errors[min_error_idx]
@@ -113,7 +111,7 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
 
         # set alpha and add to classifier list
         best_feature = features[best_feature_idx]
-        alpha = .5 * np.log((1 - best_error) / best_error) # alpha
+        alpha = .5 * np.log((1 - best_error) / best_error)
         best_feature.weight = alpha
         classifiers.append(best_feature)
 

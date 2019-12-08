@@ -15,7 +15,7 @@ class HaarLikeFeature(object):
     #selecting haar features
     # h_j(x) = 1 if p_j*f_j(x) < p_j*threshold
     # h_j(x) = 0 otherwise
-    def __init__(self, feat_type, pos, width, height, threshold, parity, weight=1):
+    def __init__(self, feature_type, pos, width, height, threshold, parity, weight=1):
         self.type = feature_type
         self.top_left = pos
         self.bottom_right = (pos[0]+width, pos[1]+height)
