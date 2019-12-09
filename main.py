@@ -1,6 +1,7 @@
 import src.integralimage as II
 import src.adaboost as AB
 import src.utils as UT
+import src.cascade as C
 import numpy as np 
 
 if __name__ == "__main__":
@@ -47,3 +48,6 @@ if __name__ == "__main__":
           + '  (' + str((float(correct_faces) / len(faces_test)) * 100) + '%)\n  non-Faces: '
           + str(correct_non_faces) + '/' + str(len(non_faces_test)) + '  ('
           + str((float(correct_non_faces) / len(non_faces_test)) * 100) + '%)')
+    
+    cascader = C.cascaded_classifier(faces_train_int, non_faces_train_int, faces_test_int, non_faces_test_int)
+    C.test_cascade_classifier(faces_test_int, non_faces_test_int, cascader)
