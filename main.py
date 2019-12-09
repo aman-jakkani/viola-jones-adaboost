@@ -9,64 +9,41 @@ if __name__ == "__main__":
     pos_testing_path = 'dataset-1/testset/faces'
     neg_testing_path = 'dataset-1/testset/non-faces'
 
-    print('Loading training faces')
-    faces_training = UT.load_images(pos_training_path)
-    num_train_face = len(faces_training)
-    print('done. ' + str(num_train_face) + ' faces loaded.\n\nLoading non faces')
-    non_faces_training = UT.load_images(neg_training_path)
-    num_train_non = len(non_faces_training)
-    print('done. ' + str(num_train_non) + ' non faces loaded.\n')
-    
-    print('Loading test faces')
-    faces_testing = UT.load_images(pos_testing_path)
-    num_test_face = len(faces_testing)
-    print('done. ' + str(num_test_face) + ' faces loaded.\n\nLoading test non faces')
-    non_faces_testing = UT.load_images(neg_testing_path)
-    num_test_non = len(non_faces_testing)
-    print('done. ' + str(num_test_non) + ' non faces loaded.\n')
+    print('Loading training faces..')
+    faces_train = UT.load_images(pos_training_path)
+    faces_train_int = list(map(II.to_integral, faces_train))
+    print('..done. ' + str(len(faces_train)) + ' faces loaded.\n\nLoading non faces..')
+    non_faces_train = UT.load_images(neg_training_path)
+    non_faces_train_int = list(map(II.to_integral, non_faces_train))
+    print('..done. ' + str(len(non_faces_train)) + ' non faces loaded.\n')
 
-    # integral images
-    faces_train_int_imgs, non_train_int_imgs = list(), list()
-    #pos_dev_int_imgs, neg_dev_int_imgs = list(), list()
-    faces_test_int_imgs, non_test_int_imgs = list(), list()
-    faces_train_variance, non_train_variance = list(), list()
-
-    print("\ngetting integral images ...")
-    for i in range(num_train_face):
-        int_img_pos, var_pos = II.IntegralImage(faces_training[i]).get_integral_image()
-        faces_train_int_imgs.append(int_img_pos)
-        faces_train_variance.append(var_pos)
-
-    for j in range(num_train_non):
-        int_img_neg, var_neg = II.IntegralImage(non_faces_training[j]).get_integral_image()
-        non_train_int_imgs.append(int_img_neg)
-        non_train_variance.append(var_neg)
-
-    for k in range(num_test_face):
-        int_img_pos_test, var_pos_test = II.IntegralImage(faces_testing[k]).get_integral_image()
-        faces_test_int_imgs.append(int_img_pos_test)
-        
-    for l in range(num_test_non):
-        int_img_neg_test, var_neg_test = II.IntegralImage(non_faces_testing[l]).get_integral_image()
-        non_test_int_imgs.append(int_img_neg_test)
-
-    print("\nintegral images obtained")
-    num_classifiers = 2
+    num_classifiers = 3
     # For performance reasons restricting feature size
     min_feature_height = 6
     max_feature_height = 8
     min_feature_width = 6
     max_feature_width = 8
-    # classifiers are haar like features
-    classifiers = AB.learn(faces_train_int_imgs, non_train_int_imgs, num_classifiers, min_feature_width, max_feature_width, min_feature_height, max_feature_height)
-
+    
+    #learn algorithm
+    classifiers = AB.learn(faces_train_int, non_faces_train_int, num_classifiers, min_feature_height, max_feature_height, min_feature_width, max_feature_width)
+    for n in range(len(classifiers)):
+        print(classifiers[n].type, classifiers[n].top_left, classifiers[n].width, classifiers[n].height, classifiers[n].threshold)
+    
+    print('Loading test faces..')
+    faces_test = UT.load_images(pos_testing_path)
+    faces_test_int = list(map(II.to_integral, faces_test))
+    print('..done. ' + str(len(faces_test)) + ' faces loaded.\n\nLoading test non faces..')
+    non_faces_test = UT.load_images(neg_testing_path)
+    non_faces_test_int = list(map(II.to_integral, non_faces_test))
+    print('..done. ' + str(len(non_faces_test)) + ' non faces loaded.\n')
+    
     print('Testing selected classifiers..')
     correct_faces = 0
     correct_non_faces = 0
-    correct_faces = sum(UT.ensemble_vote_all(faces_test_int_imgs, classifiers))
-    correct_non_faces = num_test_non - sum(UT.ensemble_vote_all(non_test_int_imgs, classifiers))
+    correct_faces = sum(UT.ensemble_vote_all(faces_test_int, classifiers))
+    correct_non_faces = len(non_faces_test) - sum(UT.ensemble_vote_all(non_faces_test_int, classifiers))
 
-    print('..done.\n\nResult:\n      Faces: ' + str(correct_faces) + '/' + str(num_test_face)
-          + '  (' + str((float(correct_faces) / num_test_face) * 100) + '%)\n  non-Faces: '
-          + str(correct_non_faces) + '/' + str(num_test_non) + '  ('
-          + str((float(correct_non_faces) / num_test_non) * 100) + '%)')
+    print('..done.\n\nResult:\n      Faces: ' + str(correct_faces) + '/' + str(len(faces_test))
+          + '  (' + str((float(correct_faces) / len(faces_test)) * 100) + '%)\n  non-Faces: '
+          + str(correct_non_faces) + '/' + str(len(non_faces_test)) + '  ('
+          + str((float(correct_non_faces) / len(non_faces_test)) * 100) + '%)')

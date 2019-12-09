@@ -2,12 +2,12 @@ import numpy as np
 import os
 from multiprocessing import cpu_count, Pool
 from functools import partial
-from src.integralimage import IntegralImage as II
 from src.haarfeatures import HaarLikeFeature as haar
 from src.haarfeatures import feat_type
 from src.utils import *
 
 def _create_features(img_width, img_height, min_feat_width, max_feat_width, min_feat_height, max_feat_height):
+    threshold = 0
     # function to create all possible features, returned as list
     haar_feats = list()
     # iterate according to types of rectangle features
@@ -21,23 +21,14 @@ def _create_features(img_width, img_height, min_feat_width, max_feat_width, min_
                 # scan the whole image with sliding windows
                 for i in range(img_width - feat_width):
                     for j in range(img_height - feat_height):
-                        haar_feats.append(haar(each_feat, (i,j), feat_width, feat_height, 0, 1)) 
-                        haar_feats.append(haar(each_feat, (i,j), feat_width, feat_height, 0, -1)) 
+                        haar_feats.append(haar(each_feat, (i,j), feat_width, feat_height, threshold, 1)) 
+                        haar_feats.append(haar(each_feat, (i,j), feat_width, feat_height, threshold, -1)) 
     return haar_feats
 
 def _get_feature_vote(feature, img):
     return feature.get_vote(img)
 
-def save_votes(votes):
-    np.savetxt("votes.txt", votes, fmt='%f')
-    print("votes saved\n")
-
-
-def load_votes():
-    votes = np.loadtxt("votes.txt", dtype=np.float64)
-    return votes
-
-def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_width=-1, min_feat_height=1, max_feat_height=-1):
+def learn(pos_int_img, neg_int_img, num_classifiers=-1, min_feat_width=1, max_feat_width=-1, min_feat_height=1, max_feat_height=-1):
     # adaboost learning algorithm with variable number of rounds/classifiers
     #return list of features, one feature per round/classifier
 
@@ -59,39 +50,32 @@ def learn(pos_int_img, neg_int_img, num_rounds=-1, min_feat_width=1, max_feat_wi
     # training images list
     images = pos_int_img + neg_int_img 
 
-    print("\ncreating haar-like features ...")
+    print("\ncreating haar-like features")
     features = _create_features(img_width, img_height, min_feat_width, max_feature_width, min_feat_height, max_feature_height)
     num_features = len(features)
-    print('... done. %d features were created!' % num_features)
+    print('done. %d features were created!' % num_features)
 
     feature_index = list(range(num_features)) # save manipulation of data
 
-    # preset number of weak learners (classifiers)
-    num_rounds = num_features if num_rounds == -1 else num_rounds
+    # default number of classifiers
+    num_classifiers = num_features if num_classifiers == -1 else num_classifiers
 
-    print("\ncalculating scores for images ...")
+    print("\ncalculating scores for images")
 
-    if os.path.exists("votes.txt"):
-        votes = load_votes()
-    else:
-        # each row is an image of all features
-        votes = np.zeros((num_imgs, num_features))
+    votes = np.zeros((num_imgs, num_features))
 
-        # parallelize the execution of a function across multiple input values
-        NUM_PROCESS = cpu_count() * 3 # 8 on T580
-        pool = Pool(processes=NUM_PROCESS)
-
-        # get all votes for each image and each feature (quite time-consuming so we use pool, even then)
-        for i in range(num_imgs):
-            votes[i, :] = np.array(list(pool.map(partial(_get_feature_vote, img=images[i]), features)))
-        save_votes(votes)
-
+    # parallelize the execution of a function across multiple input values
+    pool = Pool(processes=3)
+    # get all votes for each image and each feature (quite time-consuming so we use pool, even then)
+    for i in range(num_imgs):
+        votes[i, :] = np.array(list(pool.map(partial(_get_feature_vote, img=images[i]), features)))
+    
     # select classifiers
     classifiers = list() # list of HaarLikeFeature objects
 
     print("\nselecting classifiers")
 
-    for _ in range(num_rounds):
+    for _ in range(num_classifiers):
         
         class_errors = np.zeros(len(feature_index)) 
 
