@@ -37,10 +37,6 @@ def learn(pos_int_img, neg_int_img, num_classifiers=-1, min_feat_width=1, max_fe
     num_imgs = num_pos + num_neg
     img_height, img_width = pos_int_img[0].shape
 
-    # maximum features width and height default to image width and height
-    max_feature_width = img_width if max_feat_width == -1 else max_feat_width
-    max_feature_height = img_height if max_feat_height == -1 else max_feat_height
-
     # initialize weights and labels
     pos_weights = np.ones(num_pos) * 1. / (2 * num_pos) # w = 1/2m
     neg_weights = np.ones(num_neg) * 1. / (2 * num_neg) # w = 1/2l
@@ -51,10 +47,32 @@ def learn(pos_int_img, neg_int_img, num_classifiers=-1, min_feat_width=1, max_fe
     images = pos_int_img + neg_int_img 
 
     print("\ncreating haar-like features")
-    features = _create_features(img_width, img_height, min_feat_width, max_feature_width, min_feat_height, max_feature_height)
+    features = _create_features(img_width, img_height, min_feat_width, max_feat_width, min_feat_height, max_feat_height)
     num_features = len(features)
     print('done. %d features were created!' % num_features)
-
+    """
+    num_feat1= 0
+    num_feat2= 0 
+    num_feat3 = 0
+    num_feat4= 0 
+    num_feat5 = 0
+    for each in features:
+        if(each.type == feat_type.TWO_VERTICAL):
+            num_feat1 +=1
+        if(each.type == feat_type.TWO_HORIZONTAL):
+            num_feat2 +=1
+        if(each.type == feat_type.THREE_VERTICAL):
+            num_feat3 +=1
+        if(each.type == feat_type.THREE_HORIZONTAL):
+            num_feat4 +=1
+        if(each.type == feat_type.FOUR):
+            num_feat5 +=1
+    print('%d type 1 features were created' % num_feat1)
+    print('%d type 2 features were created' % num_feat2)
+    print('%d type 3 features were created' % num_feat3)
+    print('%d type 4 features were created' % num_feat4)
+    print('%d type 5 features were created' % num_feat5)
+    """
     feature_index = list(range(num_features)) # save manipulation of data
 
     # default number of classifiers
