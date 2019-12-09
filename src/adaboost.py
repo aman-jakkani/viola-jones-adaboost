@@ -9,7 +9,7 @@ from src.utils import *
 haar_feats = list()
 
 def _create_features(img_width, img_height, min_feat_width, max_feat_width, min_feat_height, max_feat_height):
-    threshold = 0
+    threshold = 0.4
     if(len(haar_feats) == 0):
     # iterate according to types of rectangle features
         for each_feat in feat_type:
@@ -105,7 +105,7 @@ def learn(pos_int_img, neg_int_img, num_classifiers=-1, min_feat_width=1, max_fe
         for f in range(len(feature_index)):
             f_idx = feature_index[f]
             #uncomment below for false negative error while training
-            #err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] == 0 and votes[img_idx, f_idx] == 1 else 0, range(num_imgs)))
+            #err = sum(map(lambda img_idx: weights[img_idx] if (labels[img_idx] != votes[img_idx, f_idx] and labels[img_idx] == 1.0) else 0, range(num_imgs)))
             #uncomment below for false positive error while training
             #err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] == 0 and votes[img_idx, f_idx] == 1 else 0, range(num_imgs)))
             #uncomment below for empirical error while training
@@ -116,7 +116,6 @@ def learn(pos_int_img, neg_int_img, num_classifiers=-1, min_feat_width=1, max_fe
         min_error_idx = np.argmin(class_errors) 
         best_error = class_errors[min_error_idx]
         best_feature_idx = feature_index[min_error_idx]
-
         # set alpha and add to classifier list
         best_feature = features[best_feature_idx]
         alpha = .5 * np.log((1 - best_error) / best_error)

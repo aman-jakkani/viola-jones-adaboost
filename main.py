@@ -17,7 +17,7 @@ if __name__ == "__main__":
     non_faces_train_int = list(map(II.to_integral, non_faces_train))
     print('..done. ' + str(len(non_faces_train)) + ' non faces loaded.\n')
 
-    #number of rounds
+    #number of rounds: default is 5
     num_classifiers = 5
     # For performance reasons restricting feature size
     min_feature_height = 6
