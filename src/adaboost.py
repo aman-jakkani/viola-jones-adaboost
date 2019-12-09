@@ -104,6 +104,11 @@ def learn(pos_int_img, neg_int_img, num_classifiers=-1, min_feat_width=1, max_fe
         # select the best classifier based on the weighted error
         for f in range(len(feature_index)):
             f_idx = feature_index[f]
+            #uncomment below for false negative error while training
+            #err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] == 0 and votes[img_idx, f_idx] == 1 else 0, range(num_imgs)))
+            #uncomment below for false positive error while training
+            #err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] == 0 and votes[img_idx, f_idx] == 1 else 0, range(num_imgs)))
+            #uncomment below for empirical error while training
             err = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, f_idx] else 0, range(num_imgs)))
             class_errors[f] = err
         #debug : print(class_errors)

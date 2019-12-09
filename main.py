@@ -1,7 +1,6 @@
 import src.integralimage as II
 import src.adaboost as AB
 import src.utils as UT
-import src.cascade as C
 import numpy as np 
 
 if __name__ == "__main__":
@@ -19,7 +18,7 @@ if __name__ == "__main__":
     print('..done. ' + str(len(non_faces_train)) + ' non faces loaded.\n')
 
     #number of rounds
-    num_classifiers = 1
+    num_classifiers = 5
     # For performance reasons restricting feature size
     min_feature_height = 6
     max_feature_height = 8
